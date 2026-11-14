@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FRIDA – Genetic screening for rare diseases</title>
+<meta name="description" content="FRIDA, iGEM UMA-Málaga: genetic screening for rare diseases. Slides with an interactive pooling wells explorer.">
+<style>
+@font-face{font-family:"Roboto Condensed";font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/roboto-condensed-normal.woff2) format("woff2")}
+@font-face{font-family:"Roboto Condensed";font-style:italic;font-weight:100 900;font-display:swap;src:url(fonts/roboto-condensed-italic.woff2) format("woff2")}
+@font-face{font-family:"Lato";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/lato-400.woff2) format("woff2")}
+@font-face{font-family:"Lato";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/lato-700.woff2) format("woff2")}
+@font-face{font-family:"Roboto Slab";font-style:normal;font-weight:100 900;font-display:swap;src:url(fonts/roboto-slab.woff2) format("woff2")}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#1E1420;overflow:hidden}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0}
+#stage>section{position:absolute;left:0;top:0;width:1920px;height:1080px;display:none}
+#stage>section.on{display:block}
+#stage p,#stage h1,#stage h2,#stage h3,#stage ul{margin:0}
+#bar{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);display:flex;gap:6px;align-items:center;padding:5px 8px;border-radius:999px;background:rgba(30,20,32,.72);color:#fff;font:14px/1 system-ui,sans-serif;opacity:.35;transition:opacity .2s;z-index:5}
+#bar:hover,#bar:focus-within{opacity:1}
+#bar button{all:unset;cursor:pointer;padding:6px 11px;border-radius:999px;font-size:15px}
+#bar button:hover,#bar button:focus-visible{background:rgba(255,255,255,.18)}
+#bar span{min-width:54px;text-align:center}
+/* ---- deck rules ---- */
+:root{--plum:#6B2D5C;--pink:#DD55A0;--salmon:#FBB5B0;--green:#82C42F;--bg:#F9F9F9;--ink:#2B2B2B;--teal:#1B8A8C}
+section{background:#F9F9F9;color:#2B2B2B;font-family:'Lato',Arial,sans-serif;overflow:hidden}
+b{font-weight:700}
+
+/* decoration */
+.d-pink{position:absolute;left:1710px;top:-190px;width:380px;height:380px;border-radius:50%;background:#DD55A0}
+.d-ring{position:absolute;left:1610px;top:-310px;width:620px;height:620px;border-radius:50%;border:6px solid #82C42F;box-sizing:border-box}
+.d-ring2{position:absolute;left:1686px;top:-234px;width:468px;height:468px;border-radius:50%;border:6px solid #82C42F;box-sizing:border-box}
+.d-gq{position:absolute;left:-154px;top:926px;width:308px;height:308px;border-radius:50%;background:#82C42F}
+
+/* titles */
+.ttl{position:absolute;margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-weight:700;font-size:92px;line-height:1;color:#6B2D5C;white-space:nowrap}
+.ttl .sub{font-size:44px;color:#DD55A0;margin-left:30px;font-weight:700;position:relative}
+.dot{position:absolute;border-radius:50%}
+.w{background:#FFFFFF}
+.frm{border:2px solid #EAD4E1;border-radius:22px;box-sizing:border-box;background:#FFFFFF}
+.hd{position:absolute;margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-weight:700;font-size:40px;line-height:1.1;color:#6B2D5C}
+.bl{position:absolute;margin:0;padding:0 0 0 38px;font-family:'Roboto Condensed',Arial,sans-serif;font-size:36px;line-height:1.28;color:#2B2B2B}
+.bl li{margin:0 0 6px 0}
+.bl li::marker{color:#2B2B2B}
+.fcap{margin:0;font-size:24px;line-height:1.3;color:#2B2B2B}
+.fcap b{font-weight:700}
+
+/* cover */
+.c1-salmon{position:absolute;left:1075px;top:115px;width:750px;height:750px;border-radius:50%;background:#FBB5B0}
+.c1-ring{position:absolute;left:1265px;top:189px;width:670px;height:670px;border-radius:50%;border:7px solid #DD55A0;box-sizing:border-box}
+.c1-green{position:absolute;left:1459px;top:634px;width:288px;height:288px;border-radius:50%;background:#82C42F}
+.c1-line{position:absolute;left:0;top:826px;width:649px;height:8px;background:#DD55A0}
+.c1-title{position:absolute;left:88px;top:644px;margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-weight:700;font-size:69px;line-height:1.1;color:#2B2B2B;white-space:nowrap}
+
+/* problem */
+.q-list{position:absolute;left:173px;top:246px;width:1650px;margin:0;padding:0 0 0 48px;list-style:none;font-family:'Roboto Condensed',Arial,sans-serif;font-style:italic;font-size:60px;line-height:72px;color:#2B2B2B}
+.q-list li{position:relative}
+.q-list li::before{content:'';position:absolute;left:-48px;top:26px;width:22px;height:22px;border-radius:50%;background:#DD55A0}
+.stats{position:absolute;left:109px;top:495px;width:1671px;display:flex;gap:57px}
+.stat{flex:1;min-height:404px;box-sizing:border-box;background:#FFFFFF;border:3px solid #F6D5E5;border-radius:28px;padding:40px 40px 40px 40px;display:flex;flex-direction:column;gap:32px}
+.stat-big{margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-weight:700;font-size:97px;line-height:1.1;color:#DD55A0;text-align:center;height:112px;display:flex;align-items:center;justify-content:center}
+.stat-big.sm{font-size:64px}
+.stat-txt{margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-size:37px;line-height:1.2;color:#2B2B2B}
+.src{position:absolute;right:110px;top:936px;width:1300px;margin:0;text-align:right;font-family:'Roboto Condensed',Arial,sans-serif;font-size:26px;color:#2B2B2B}
+
+/* solution */
+.v-d{position:absolute;left:52px;top:240px;width:510px;height:510px;border-radius:50%;background:rgba(122,70,104,.62)}
+.v-n{position:absolute;left:323px;top:240px;width:510px;height:510px;border-radius:50%;background:rgba(225,140,200,.5)}
+.v-a{position:absolute;left:188px;top:429px;width:510px;height:510px;border-radius:50%;background:rgba(226,100,176,.55)}
+.vl{position:absolute;margin:0;text-align:center;color:#FFFFFF}
+.vl-n{font-family:'Roboto Slab',Georgia,serif;font-weight:700;font-size:58px;line-height:1.1}
+.vl-s{font-family:'Roboto Condensed',Arial,sans-serif;font-size:26px;line-height:1.1}
+.vl-f{font-family:'Roboto Slab',Georgia,serif;font-weight:700;font-size:72px;line-height:1.1}
+.goal{position:absolute;left:920px;top:214px;width:770px;margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-weight:700;font-size:53px;line-height:1.17;color:#6B2D5C}
+.roles{position:absolute;left:918px;top:456px;width:788px;display:flex;flex-direction:column;gap:10px}
+.role{background:#FFFFFF;border:2px solid #D9B6CC;border-left:5px solid #DD55A0;border-radius:6px;padding:14px 24px 14px 20px}
+.rn{margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-weight:700;font-size:40px;line-height:1.15;color:#6B2D5C}
+.rd{margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-size:32px;line-height:1.2;color:#6B2D5C}
+.pillars{position:absolute;left:924px;top:864px;margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-size:39px;color:#6B2D5C}
+.pillars b{color:#DD55A0}
+
+/* platform workflow */
+.wf-row{position:absolute;left:156px;width:1100px;display:flex;align-items:stretch}
+.wf-card{width:248px;box-sizing:border-box;background:#FBF1F7;border:2px solid #F0D7E5;border-radius:14px;padding:16px 12px 16px 12px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}
+.wf-card.dash{background:#F9DCEB;border:2px dashed #DD55A0}
+.wf-t{margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-weight:700;font-size:26px;line-height:1.15;color:#6B2D5C}
+.wf-d{margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-size:24px;line-height:1.15;color:#7A5870}
+.wf-ar{width:36px;align-self:center;display:flex;align-items:center;justify-content:center}
+.figcol{position:absolute;left:1290px;top:58px;width:540px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.pf{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.pf .fcap{text-align:center}
+.fnote{position:absolute;left:420px;top:930px;margin:0;font-size:34px;color:#2B2B2B}
+.fnote b{font-weight:700}
+
+/* part collection */
+.figs{position:absolute;left:150px;top:234px;width:882px;display:grid;grid-template-columns:420px 420px;gap:12px 42px}
+.fig{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:left}
+.fig .fcap{align-self:stretch;padding-left:16px}
+.last{position:absolute;left:206px;top:922px;width:700px;margin:0;text-align:center;font-size:34px;line-height:1.25;color:#2B2B2B}
+.mflow{position:absolute;left:1085px;top:96px;width:440px;height:900px}
+.ml{position:absolute;left:1560px;width:350px;margin:0;font-size:24px;line-height:1.2;color:#8E3A78}
+.ml b{display:block;font-size:26px;font-weight:400;color:#1B8A8C}
+.mt{position:absolute;margin:0;font-size:24px;line-height:1;color:#7A2E6A;text-align:center}
+
+/* software */
+.sw-list{position:absolute;left:190px;top:236px;width:930px;margin:0;padding:0 0 0 38px;font-family:'Roboto Condensed',Arial,sans-serif;font-size:36px;line-height:46px;color:#2B2B2B}
+.sw-list li{margin:0}
+.gpanel{position:absolute;left:170px;top:562px;width:892px;height:410px;border-radius:22px;background:#FBEFF5}
+.gsteps{position:absolute;left:186px;top:576px;width:862px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.gs{position:relative;box-sizing:border-box;min-height:112px;background:#F8E6F0;border:2px solid #DD55A0;border-radius:10px;padding:10px 12px 10px 64px}
+.gs.g{background:#EAF5DA;border-color:#82C42F}
+.gs .n{position:absolute;left:14px;top:12px;width:36px;height:36px;border-radius:50%;background:#DD55A0;color:#FFFFFF;font-weight:700;font-size:24px;line-height:36px;text-align:center}
+.gs.g .n{background:#82C42F;color:#2B2B2B}
+.gs .t{margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-weight:700;font-size:26px;line-height:1.15;color:#6B2D5C}
+.gs .x{margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-size:24px;line-height:1.15;color:#6B2D5C}
+
+/* advances */
+.adv-p{position:absolute;margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-size:36px;line-height:1.28;color:#2B2B2B}
+.num{position:absolute;margin:0;left:1066px;font-family:'Roboto Condensed',Arial,sans-serif;font-weight:700;font-size:38px;line-height:1;color:#6B2D5C}
+.strip{position:absolute;left:1115px;width:360px;height:39px}
+.slab{position:absolute;left:1496px;margin:0;font-size:24px;line-height:1;color:#2B2B2B}
+
+/* closing */
+.fr-bar{position:absolute;left:499px;top:120px;width:106px;height:594px;background:#F0709F}
+.fr-col{position:absolute;left:499px;top:126px;width:900px}
+.fr-row{display:flex;align-items:center;height:116px}
+.fr-l{width:106px;height:116px;color:#FFFFFF;font-weight:400;font-size:64px;line-height:116px;text-align:center;margin:0}
+.fr-t{margin:0 0 0 18px;font-size:42px;line-height:1;color:#4A3A47}
+.tag{position:absolute;left:165px;top:790px;margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-weight:700;font-style:italic;font-size:65px;line-height:1.1;color:#6B2D5C;white-space:nowrap}
+
+/* pooling */
+.pcard{position:absolute;left:109px;top:236px;width:1590px;height:700px;box-sizing:border-box;background:#FFFFFF;border:2px solid #F2C6DE;border-radius:28px}
+.ptag{position:absolute;margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-weight:700;font-size:28px;letter-spacing:.16em;text-transform:uppercase;color:#8A6A7D}
+.pt{position:absolute;margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-size:24px;line-height:30px;color:#8A6A7D}
+.pe{position:absolute;margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-size:24px;line-height:30px;color:#5B3A4F;white-space:nowrap}
+.pax{position:absolute;margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-weight:700;font-size:26px;line-height:30px;color:#8A6A7D}
+.lgcol{position:absolute;left:1350px;top:290px;width:330px;display:flex;flex-direction:column;gap:20px}
+.plbl{margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-weight:700;font-size:24px;letter-spacing:.14em;text-transform:uppercase;color:#8A6A7D}
+.lg{display:flex;flex-direction:column;gap:4px}
+.lgh{display:flex;align-items:center;gap:14px}
+.lgn{margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-weight:700;font-size:32px;line-height:1.1;color:#8A0F57}
+.lgf{margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-size:24px;line-height:1.2;color:#5B3A4F}
+.pnote{margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-size:24px;line-height:1.25;color:#8A6A7D}
+.pfoot{position:absolute;margin:0;width:1500px;font-family:'Roboto Condensed',Arial,sans-serif;font-size:24px;line-height:30px;color:#5B3A4F}
+.pfoot a{color:#8A0F57}
+
+/* ---- interactive pooling slide ---- */
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.ctl{position:absolute;left:150px;top:256px;width:1510px;display:flex;flex-direction:column;gap:14px}
+.crow{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.clbl{min-width:120px;font:700 24px/1 'Roboto Condensed',Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8A6A7D}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative;display:inline-flex;align-items:center;gap:10px;padding:6px 16px;border:2px solid rgba(214,36,127,.3);border-radius:999px;font:400 24px/1.2 'Roboto Condensed',Arial,sans-serif;cursor:pointer;color:#5B3A4F;user-select:none;background:transparent}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip:has(input:checked){background:#FFD3EA;border-color:#D6247F;color:#8A0F57;font-weight:700}
+.chip:has(input:focus-visible){outline:3px solid #D6247F;outline-offset:2px}
+#vmax{font:400 24px/1.2 'Roboto Condensed',Arial,sans-serif;padding:4px 12px;border-radius:12px;border:2px solid rgba(214,36,127,.3);background:#fff;color:#1C1C1C}
+#err{font:400 24px/1.2 'Roboto Condensed',Arial,sans-serif;color:#B31237}
+.cwrap{position:absolute;left:140px;top:380px;width:1520px;height:544px}
+#err{position:absolute;left:150px;top:350px;min-height:0}
+.cwrap canvas{display:block}
+.pfoot b{font-weight:700}
+</style>
+</head>
+<body>
+<div id="stage">
+<section id="cover">
+<div class="c1-salmon"></div>
+<div class="c1-ring"></div>
+<div class="c1-green"></div>
+<img src="img/i-001-000.png" alt="Frida UMA Málaga logo" style="position:absolute;left:53px;top:243px;width:997px;height:499px;object-fit:contain">
+<h1 class="c1-title">Genetic screening for rare diseases</h1>
+<div class="c1-line"></div>
+</section>
+<section id="problem">
+<div class="d-pink"></div>
+<div class="d-ring"></div>
+<div class="d-ring2"></div>
+<div class="d-gq"></div>
+<h2 class="ttl" style="left:125px;top:92px;font-size:101px">The problem</h2>
+<ul class="q-list">
+<li>What are rare diseases?</li>
+<li>How are they diagnosed?</li>
+<li>What if a baby's diagnosis depended on where they were born?</li>
+</ul>
+<div class="stats">
+<div class="stat">
+<p class="stat-big sm">&lt; 5 in 10,000</p>
+<p class="stat-txt">A disease is rare when it affects fewer than 5 in every 10,000 people</p>
+</div>
+<div class="stat">
+<p class="stat-big">~70%</p>
+<p class="stat-txt">of rare diseases have a genetic origin</p>
+</div>
+<div class="stat">
+<p class="stat-big">Millions</p>
+<p class="stat-txt">of people are affected, yet diagnosis remains a challenge</p>
+</div>
+</div>
+<p class="src">Source: Orphanet (The Portal for Rare Diseases and Orphan Drugs).</p>
+</section>
+<section id="solution">
+<div class="d-pink"></div>
+<div class="d-ring"></div>
+<div class="d-ring2"></div>
+<div class="d-gq"></div>
+<h2 class="ttl" style="left:86px;top:96px">Our solution</h2>
+<div class="v-d"></div>
+<div class="v-n"></div>
+<div class="v-a"></div>
+<p class="vl vl-n" style="left:64px;top:392px;width:240px">Diana</p>
+<p class="vl vl-s" style="left:64px;top:454px;width:240px">Software</p>
+<p class="vl vl-n" style="left:583px;top:392px;width:240px">Neith</p>
+<p class="vl vl-s" style="left:583px;top:454px;width:240px">Results</p>
+<p class="vl vl-f" style="left:292px;top:496px;width:300px">Frida</p>
+<p class="vl vl-n" style="left:293px;top:772px;width:300px">Athena</p>
+<p class="vl vl-s" style="left:293px;top:836px;width:300px">Human Practices</p>
+<h3 class="goal">Goal: identifying rare diseases with a genetic cause, making screening easier and more streamlined</h3>
+<div class="roles">
+<div class="role"><h3 class="rn">Athena</h3><p class="rd">Defines the human context both are answering</p></div>
+<div class="role"><h3 class="rn">Diana</h3><p class="rd">Designs the guides it uses</p></div>
+<div class="role"><h3 class="rn">Neith</h3><p class="rd">Builds and tests the platform</p></div>
+</div>
+<p class="pillars">The three pillars converge in <b>Frida</b>.</p>
+</section>
+<section id="platform" class="w">
+<div class="d-gq"></div>
+<div class="dot" style="left:108px;top:140px;width:88px;height:88px;background:#DD55A0"></div>
+<h2 class="ttl" style="left:222px;top:136px;font-size:101px">Best Alternative Platform</h2>
+
+<img src="img/k-workflow.png" alt="Workflow: variant selection, Diana software, target sequences, cloning and multiplexing, five guides (DNA), combinatorial pattern, Sherlock assays, output" width="1116" height="634" style="position:absolute;left:148px;top:296px;width:1116px;height:634px;object-fit:contain">
+
+<p class="fnote" style="top:932px">• A <b>unique</b> fluorescent <b>output</b> pattern</p>
+
+<div class="figcol">
+<div class="pf"><img src="img/c-fig1.png" alt="Figure 1 bar chart of fluorescence for wild-type and mutated targets" width="262" height="237" style="width:262px;height:237px;object-fit:contain"><p class="fcap"><b>Figure 1.</b> Validation of the capacity of DIANA to generate specific fluorescence emission</p></div>
+<div class="pf"><img class="frm" src="img/i-004-002.png" alt="Figure 2 agarose gel of the tandem assembly" width="296" height="232" style="width:296px;height:232px;object-fit:contain"><p class="fcap"><b>Figure 2.</b> Validation of the tandem assambly</p></div>
+<div class="pf"><img class="frm" src="img/i-004-003.png" alt="Figure 3 bar chart of CRISPR-Cas13a processing activity" width="296" height="232" style="width:296px;height:232px;object-fit:contain"><p class="fcap"><b>Figure 3.</b> Evaluation of processing activity of CRISPR-Cas13a</p></div>
+</div>
+</section>
+<section id="parts" class="w">
+<div class="d-gq"></div>
+<div class="dot" style="left:109px;top:109px;width:89px;height:89px;background:#FBB5B0"></div>
+<h2 class="ttl" style="left:226px;top:104px;font-size:101px">Best Part Collection</h2>
+
+<div class="figs">
+<div class="fig"><img class="frm" src="img/i-005-005.png" alt="Figure 4 bar chart, SNP specificity" width="232" height="260" style="width:232px;height:260px;object-fit:contain"><p class="fcap"><b>Figure 4.</b> Specificity evaluation of <span style="white-space:nowrap">SNP´s</span></p></div>
+<div class="fig"><img class="frm" src="img/i-004-003.png" alt="Figure 5 bar chart, processing activity of CRISPR-Cas13a" width="331" height="260" style="width:331px;height:260px;object-fit:contain"><p class="fcap"><b>Figure 5.</b> Evaluation of processing activity of CRISPR-Cas13a</p></div>
+<div class="fig"><img src="img/c-fig6.png" alt="Figure 6 bar chart, specificity for insertions" width="284" height="260" style="width:284px;height:260px;object-fit:contain"><p class="fcap"><b>Figure 6.</b> Specificity evaluation insertions</p></div>
+<div class="fig"><img class="frm" src="img/i-004-002.png" alt="Figure 7 agarose gel of the tandem assembly" width="331" height="260" style="width:331px;height:260px;object-fit:contain"><p class="fcap"><b>Figure 7.</b> Validation of the tandem assambly</p></div>
+</div>
+<p class="last">Last editions: a total of <b>75 teams</b> presented a <b>CRISPR-Cas</b> system</p>
+
+<img src="img/k-flow.png" alt="Flow of the CRISPR-Cas13a part: SNP or indel, cloning in one GCS, tandem array, Cas13a processing, target recognition and response" width="460" height="920" style="position:absolute;left:1074px;top:84px;width:460px;height:920px;object-fit:contain">
+
+<p class="ml" style="top:97px"><b>Type of mutations</b>one variant per guide</p>
+<p class="ml" style="top:218px"><b>Cloning in one GCS</b>BsaI sites at both ends</p>
+<p class="ml" style="top:337px"><b>Tandem array transcribed</b>one RNA with five guides</p>
+<p class="ml" style="top:453px"><b>Cas13a processing</b>cuts between the hairpins</p>
+<p class="ml" style="top:610px"><b>Cas13a keeps one gRNA</b>the complex is now active</p>
+<p class="ml" style="top:769px"><b>Target recognised</b>collateral activity switches on</p>
+<p class="ml" style="top:921px"><b>Response</b>probes cut, the well lights up</p>
+</section>
+<section id="software" class="w">
+<div class="d-pink"></div>
+<div class="d-ring"></div>
+<div class="d-ring2"></div>
+<div class="d-gq"></div>
+<div class="dot" style="left:109px;top:117px;width:62px;height:62px;background:#82C42F"></div>
+<h2 class="ttl" style="left:221px;top:96px;font-size:103px">Best Software Tool</h2>
+<img src="img/rna-crop.png" alt="Predicted RNA secondary structure of a guide RNA" width="206" height="156" style="position:absolute;left:1034px;top:78px;width:206px;height:156px;object-fit:contain">
+
+<ul class="sw-list">
+<li>Compatible with <b>synthetic biology</b> standards</li>
+<li>Exports data in <b>numerous formats:</b> FASTA, SBOL</li>
+<li><b>Adaptable</b> to detect other diseases</li>
+<li>Integrated through an <b>importable library</b>, a CLI, and skills for <b>AI agents</b></li>
+<li><b>Video-tutorial</b> in the wiki</li>
+<li>Experimentally <b>validated</b></li>
+</ul>
+
+<img src="img/k-steps.png" alt="Six steps for designing a guide RNA: variant, sequence, candidates, scoring, ranking and checks, complete gRNA" width="898" height="424" style="position:absolute;left:168px;top:556px;width:898px;height:424px;object-fit:contain">
+<p class="fcap" style="position:absolute;left:170px;top:984px;width:892px;text-align:center"><b>Figure 3.</b> Steps for designing a guide RNA.</p>
+
+<img src="img/c-sw4.png" alt="Bar chart of specificity of the mutated guide RNA against mutated and wild-type targets" width="567" height="504" style="position:absolute;left:1196px;top:250px;width:567px;height:504px;object-fit:contain">
+<p class="fcap" style="position:absolute;left:1196px;top:790px;width:570px;text-align:justify"><b>Figure 4.</b> Specificity evaluation of the mutated guide RNA (gMut027) against the mutated target (tMut + gMut027) and the wild-type target (tWT + gMut027).</p>
+</section>
+<section id="spec" class="w">
+<div class="d-pink"></div>
+<div class="d-ring"></div>
+<div class="d-ring2"></div>
+<div class="d-gq"></div>
+<h2 class="ttl" style="left:217px;top:98px;font-size:101px">Advances <span class="sub" style="font-size:42px;margin-left:54px;top:-14px">Specificity repeated</span></h2>
+<img class="frm" src="img/i-007-011.png" alt="Bar chart of fluorescence for gMut027 with wild-type and mutated targets" width="820" height="644" style="position:absolute;left:217px;top:242px;width:820px;height:644px;object-fit:contain">
+<p class="fcap" style="position:absolute;left:244px;top:916px;width:790px"><b>Figure 5.</b> Specificity evaluation of the mutated guide RNA (gMut027) against the mutated target (tMut + gMut027) and the wild-type target (tWT + gMut027).</p>
+<h3 class="hd" style="left:1116px;top:318px;font-size:42px">Goal</h3>
+<ul class="bl" style="left:1139px;top:372px;width:640px;font-size:40px;line-height:52px"><li>Demonstrate <b>experimental reproducibility</b> and verify that the guide is indeed specific.</li></ul>
+<h3 class="hd" style="left:1116px;top:618px;font-size:42px">Results</h3>
+<ul class="bl" style="left:1139px;top:674px;width:640px;font-size:40px;line-height:52px"><li>Our guide again identified the SNP <b>specifically</b>, with a signal <b>significantly different</b> from the wild-type sequence.</li></ul>
+</section>
+<section id="tandem" class="w">
+<div class="d-pink"></div>
+<div class="d-ring"></div>
+<div class="d-ring2"></div>
+<div class="d-gq"></div>
+<h2 class="ttl" style="left:138px;top:76px;font-size:101px">Advances <span class="sub" style="font-size:48px;margin-left:100px">Multiplexing Tandem assay</span></h2>
+<img class="frm" src="img/i-008-024.png" alt="Bar chart of fluorescence for tandem guide arrays gMut030 to gMut035" width="730" height="573" style="position:absolute;left:163px;top:236px;width:730px;height:573px;object-fit:contain">
+<p class="fcap" style="position:absolute;left:156px;top:832px;width:740px"><b>Figure 6.</b> Fluorescence signal analysis for tandem guide arrays with varying target-complementary guide positions in the SHERLOCK assay.</p>
+
+<p class="num" style="top:242px">30</p>
+<p class="num" style="top:309px">31</p>
+<p class="num" style="top:377px">32</p>
+<p class="num" style="top:444px">33</p>
+<p class="num" style="top:509px">34</p>
+<p class="num" style="top:574px">35</p>
+<img class="strip" src="img/i-008-012.png" alt="Tandem guide array, first guide complementary to the target" width="360" height="39" style="top:242px">
+<img class="strip" src="img/i-008-014.png" alt="Tandem guide array, second guide complementary to the target" width="360" height="39" style="top:309px">
+<img class="strip" src="img/i-008-016.png" alt="Tandem guide array, third guide complementary to the target" width="360" height="39" style="top:377px">
+<img class="strip" src="img/i-008-018.png" alt="Tandem guide array, fourth guide complementary to the target" width="360" height="39" style="top:444px">
+<img class="strip" src="img/i-008-020.png" alt="Tandem guide array, fifth guide complementary to the target" width="360" height="39" style="top:509px">
+<img class="strip" src="img/i-008-022.png" alt="Tandem guide array with no complementary guide" width="360" height="39" style="top:574px">
+<p class="slab" style="top:316px">Unprocessed</p>
+<p class="slab" style="top:384px">Not synthesized</p>
+<p class="slab" style="top:581px">Without complementarity</p>
+
+<h3 class="hd" style="left:993px;top:664px">Goal</h3>
+<ul class="bl" style="left:1010px;top:720px;width:760px;font-size:34px;line-height:44px"><li>Demonstrate <b>Cas13's ability to process assembled guides.</b></li></ul>
+<h3 class="hd" style="left:993px;top:832px">Results</h3>
+<ul class="bl" style="left:1010px;top:888px;width:760px;font-size:34px;line-height:44px"><li>All the guides <b>were processed except for the one in position two</b>.</li></ul>
+</section>
+<section id="onepot" class="w">
+<div class="d-pink"></div>
+<div class="d-ring"></div>
+<div class="d-ring2"></div>
+<div class="d-gq"></div>
+<h2 class="ttl" style="left:109px;top:96px;font-size:101px">Advances <span class="sub" style="font-size:47px;margin-left:62px;top:-8px">One-pot reaction</span></h2>
+<img class="frm" src="img/i-009-025.png" alt="Bar chart of the SHERLOCK fluorescence signal for different gDNA concentrations and pre-transcribed gRNA" width="715" height="561" style="position:absolute;left:134px;top:259px;width:715px;height:561px;object-fit:contain">
+<p class="fcap" style="position:absolute;left:108px;top:840px;width:780px"><b>Figure 7.</b> Analysis of the fluorescence signal from the SHERLOCK assay, comparing different concentrations of gDNA with gRNA previously transcribed in vitro.</p>
+<h3 class="hd" style="left:935px;top:306px;font-size:42px">Goal:</h3>
+<p class="adv-p" style="left:935px;top:364px;width:900px;font-size:37px;line-height:52px">Repeat the SHERLOCK assay <b>comparing in situ transcription</b> with <b>pre-transcribed guides</b> to confirm previous results.</p>
+<h3 class="hd" style="left:935px;top:565px;font-size:42px">Results:</h3>
+<ul class="bl" style="left:958px;top:621px;width:880px;font-size:37px;line-height:52px">
+<li><b>Pre-transcribed RNA</b> produced a stronger signal.</li>
+<li><b>DNA-templated</b> guides still generated a significant and comparable signal.</li>
+</ul>
+</section>
+<section id="indels" class="w">
+<div class="d-pink"></div>
+<div class="d-ring"></div>
+<div class="d-ring2"></div>
+<h2 class="ttl" style="left:115px;top:100px;font-size:101px">Advances <span class="sub" style="font-size:47px;margin-left:52px;top:-10px">Indels</span></h2>
+<p class="adv-p" style="left:214px;top:284px;width:320px;text-align:center;font-size:36px;color:#6B2D5C">Delection</p>
+<p class="adv-p" style="left:823px;top:284px;width:320px;text-align:center;font-size:36px;color:#6B2D5C">Insertion</p>
+<img class="frm" src="img/i-010-026.png" alt="Bar chart for the deletion guide gMut091 against mutated and wild-type targets" width="343" height="392" style="position:absolute;left:211px;top:361px;width:343px;height:392px;object-fit:contain">
+<img class="frm" src="img/i-010-027.png" alt="Bar chart for the insertion guide gMut093 against mutated and wild-type targets" width="351" height="392" style="position:absolute;left:803px;top:361px;width:351px;height:392px;object-fit:contain">
+<p class="fcap" style="position:absolute;left:119px;top:783px;width:528px"><b>Figure 8.</b> Specificity evaluation of the mutated guide RNA (gMut091) against the mutated target (tMut + gMut091) and the wild-type target (tWT + gMut091).</p>
+<p class="fcap" style="position:absolute;left:720px;top:783px;width:541px"><b>Figure 9.</b> Specificity evaluation of the mutated guide RNA (gMut093) against the mutated target (tMut + gMut093) and the wild-type target (tWT + gMut093).</p>
+<h3 class="hd" style="left:1258px;top:380px;font-size:38px">Goal</h3>
+<ul class="bl" style="left:1272px;top:431px;width:620px;font-size:32px;line-height:42px"><li>Being able to <b>specifically detect indels.</b></li></ul>
+<h3 class="hd" style="left:1258px;top:551px;font-size:38px">Results</h3>
+<ul class="bl" style="left:1272px;top:602px;width:620px;font-size:32px;line-height:42px"><li>This design appears to <b>detect insertions specifically, but not deletions.</b> Further experimentation is required.</li></ul>
+</section>
+<section id="closing">
+<div class="d-pink"></div>
+<div class="d-ring"></div>
+<div class="d-ring2"></div>
+<div class="d-gq"></div>
+<div class="fr-bar"></div>
+<div class="fr-col">
+<div class="fr-row"><p class="fr-l">F</p><p class="fr-t">ast</p></div>
+<div class="fr-row"><p class="fr-l">R</p><p class="fr-t">are disease</p></div>
+<div class="fr-row"><p class="fr-l">I</p><p class="fr-t">dentification via</p></div>
+<div class="fr-row"><p class="fr-l">D</p><p class="fr-t">etection</p></div>
+<div class="fr-row"><p class="fr-l">A</p><p class="fr-t">mplification</p></div>
+</div>
+<img src="img/i-011-028.png" alt="Frida logo mark: a baby wrapped in a pink tulip" width="374" height="426" style="position:absolute;left:1046px;top:204px;width:374px;height:426px;object-fit:contain">
+<p class="tag">Because a baby’s diagnosis cannot depend on their nationality</p>
+</section>
+<section id="pooling">
+<div class="d-pink"></div>
+<div class="d-ring"></div>
+<div class="d-ring2"></div>
+<div class="d-gq"></div>
+<h2 class="ttl" style="left:109px;top:84px;font-size:88px">Wells needed by combinatorial pooling</h2>
+<p class="ptag" style="left:113px;top:188px">V guides, K guides per well</p>
+<div class="pcard"></div>
+<div class="ctl">
+  <div class="crow"><span class="clbl">Layouts</span><span class="chips" id="models"></span></div>
+  <div class="crow"><span class="clbl">K values</span><span class="chips" id="ks"></span>
+    <span class="clbl" style="min-width:0;margin-left:18px">Max V</span>
+    <label class="sr" for="vmax">Maximum number of guides V</label>
+    <select id="vmax"><option>100</option><option>250</option><option selected>500</option><option>1000</option><option>2500</option><option>5000</option></select>
+  </div>
+  <p id="err" role="status"></p>
+</div>
+<div class="cwrap"><canvas id="c" role="img" aria-label="Wells needed versus number of guides V, for the selected K values and pooling layouts, with a no-pooling baseline where N equals V.">Wells needed versus V for the selected K values and layouts.</canvas></div>
+<p class="pfoot" style="left:190px;top:948px;width:1650px"><b>2D Fragmented:</b> N = 2K·ceil(V/K²) · <b>2D Matrix:</b> N = 2s·ceil(s/K), s = ceil(√V) · <b>3D:</b> N = 3c·ceil(c²/K), c = ceil(∛V) · <b>No pooling:</b> N = V</p>
+<p class="pfoot" style="left:190px;top:984px;width:1650px">N is the total number of wells, including the empty slots a layout reserves. Formulas as in the pooling module of Diana. Hover the chart to read each line.</p>
+</section>
+</div>
+<div id="bar" aria-label="Slide navigation"><button id="prev" aria-label="Previous slide">&#9664;</button><span id="pos">1 / 12</span><button id="next" aria-label="Next slide">&#9654;</button><button id="fs" aria-label="Fullscreen">&#9974;</button></div>
+<script src="../vendor/chart.umd.js"></script>
+<script>
+
+const stage=document.getElementById('stage'),slides=[...stage.children],N=slides.length;
+let cur=0,S=1,chart=null;
+function fit(){
+  const W=innerWidth,H=innerHeight;S=Math.min(W/1920,H/1080);
+  stage.style.transform=`translate(${(W-1920*S)/2}px,${(H-1080*S)/2}px) scale(${S})`;
+  if(chart){chart.options.devicePixelRatio=(window.devicePixelRatio||1)*Math.max(1,S);chart.resize();}
+}
+function go(i,push){
+  cur=Math.max(0,Math.min(N-1,i));
+  slides.forEach((s,j)=>s.classList.toggle('on',j===cur));
+  document.getElementById('pos').textContent=(cur+1)+' / '+N;
+  if(push!==false)history.replaceState(null,'','#'+(cur+1));
+  if(slides[cur].id==='pooling'&&chart){chart.resize();}
+}
+document.getElementById('prev').onclick=()=>go(cur-1);
+document.getElementById('next').onclick=()=>go(cur+1);
+document.getElementById('fs').onclick=()=>{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();};
+addEventListener('keydown',e=>{
+  const t=e.target&&e.target.tagName;if(t==='SELECT'||t==='INPUT'&&e.key===' ')return;
+  if(['ArrowRight','PageDown'].includes(e.key)||(e.key===' '&&t!=='INPUT'&&t!=='BUTTON')){go(cur+1);e.preventDefault();}
+  else if(['ArrowLeft','PageUp'].includes(e.key)){go(cur-1);e.preventDefault();}
+  else if(e.key==='Home')go(0);else if(e.key==='End')go(N-1);
+  else if(e.key==='f'||e.key==='F')document.getElementById('fs').click();
+});
+let tx=null;
+addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
+addEventListener('touchend',e=>{if(tx==null)return;const dx=e.changedTouches[0].clientX-tx;tx=null;if(Math.abs(dx)>70&&!e.target.closest('.cwrap,.ctl'))go(cur+(dx<0?1:-1));});
+addEventListener('resize',fit);
+
+/* ---- pooling explorer (formulas as in the repo's index.html) ---- */
+const cd=(a,b)=>a<=0?0:Math.floor((a+b-1)/b);
+const csq=v=>{let r=Math.max(1,Math.floor(Math.sqrt(v)));while(r*r<v)r++;while(r>1&&(r-1)*(r-1)>=v)r--;return r;};
+const ccb=v=>{let r=Math.max(1,Math.floor(Math.cbrt(v)));while(r*r*r<v)r++;while(r>1&&(r-1)**3>=v)r--;return r;};
+const MODELS=[
+  {n:'2D Fragmented',c:'#E01E84',t:'#B3135F',d:[],on:true,f:(v,k)=>2*k*cd(v,k*k)},
+  {n:'2D Matrix',c:'#00B26F',t:'#007A4D',d:[14,8],on:true,f:(v,k)=>{const s=csq(v);return 2*s*cd(s,k);}},
+  {n:'3D',c:'#FF7A00',t:'#B85200',d:[4,6],on:true,f:(v,k)=>{const c=ccb(v);return 3*c*cd(c*c,k);}},
+  {n:'No pooling (N = V)',c:'#3D3A8C',t:'#3D3A8C',d:[18,6,4,6],on:true,f:v=>v,noK:true}
+];
+const KS=[1,2,3,4,5,6,8,10,15,20];
+const kOn=new Set([3,5,8]);
+function rgba(hex,a){const n=parseInt(hex.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}
+function chip(label,on,cb,swatch){
+  const l=document.createElement('label');l.className='chip';
+  l.innerHTML=`${swatch||''}<input type="checkbox" ${on?'checked':''}>${label}`;
+  l.querySelector('input').addEventListener('change',e=>cb(e.target.checked));return l;}
+const sw=m=>`<svg width="44" height="12" aria-hidden="true"><line x1="0" y1="6" x2="44" y2="6" stroke="${m.c}" stroke-width="5" stroke-dasharray="${m.d.join(' ')}"/></svg>`;
+MODELS.forEach(m=>document.getElementById('models').appendChild(chip(m.n,m.on,v=>{m.on=v;build();},sw(m))));
+KS.forEach(k=>document.getElementById('ks').appendChild(chip('K = '+k,kOn.has(k),v=>{v?kOn.add(k):kOn.delete(k);build();})));
+const endLabels={id:'endLabels',afterDatasetsDraw(ch){
+  const ctx=ch.ctx;ctx.save();ctx.font='24px "Roboto Condensed",sans-serif';ctx.textBaseline='middle';
+  const items=[];
+  ch.data.datasets.forEach((ds,i)=>{if(!ds.endLabel)return;const p=ch.getDatasetMeta(i).data.slice(-1)[0];if(p)items.push({t:ds.endLabel,x:p.x,y:p.y,c:ds.textColor});});
+  items.sort((a,b)=>a.y-b.y);for(let i=1;i<items.length;i++)if(items[i].y-items[i-1].y<26)items[i].y=items[i-1].y+26;
+  items.forEach(o=>{ctx.fillStyle=o.c;ctx.fillText(o.t,o.x+10,o.y);});ctx.restore();}};
+Chart.defaults.font.family='"Roboto Condensed",sans-serif';Chart.defaults.font.size=24;
+chart=new Chart(document.getElementById('c'),{type:'line',data:{datasets:[]},plugins:[endLabels],options:{
+  responsive:true,maintainAspectRatio:false,animation:false,parsing:false,layout:{padding:{right:130,top:8}},
+  interaction:{mode:'index',intersect:false},
+  plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(60,20,50,.94)',titleFont:{size:24},bodyFont:{size:24},padding:12,callbacks:{title:i=>'V = '+i[0].parsed.x,label:i=>' '+i.dataset.label+': '+i.parsed.y+' wells'}}},
+  scales:{x:{type:'linear',title:{display:true,text:'V (guides)',font:{size:26,weight:'bold'},color:'#8A6A7D'},grid:{display:false},ticks:{color:'#8A6A7D',font:{size:24}}},
+          y:{beginAtZero:true,title:{display:true,text:'Wells (N)',font:{size:26,weight:'bold'},color:'#8A6A7D'},grid:{color:'rgba(110,35,82,.12)'},ticks:{color:'#8A6A7D',font:{size:24}}}}}});
+function build(){
+  const vmax=+document.getElementById('vmax').value,step=Math.max(1,Math.round(vmax/400));
+  const Vs=[];for(let v=1;v<=vmax;v+=step)Vs.push(v);if(Vs[Vs.length-1]!==vmax)Vs.push(vmax);
+  const ks=[...kOn].sort((a,b)=>a-b),on=MODELS.filter(m=>m.on);
+  document.getElementById('err').textContent=!on.length?'Select at least one layout.':(!ks.length&&on.some(m=>!m.noK)?'Select at least one K value.':'');
+  const ds=[];
+  on.forEach(m=>{
+    if(m.noK){ds.push({label:m.n,borderColor:m.c,borderDash:m.d,borderWidth:5,pointRadius:0,pointHoverRadius:7,endLabel:'No pooling',textColor:m.t,data:Vs.map(v=>({x:v,y:v}))});return;}
+    ks.forEach((k,j)=>{const a=ks.length===1?1:0.55+0.45*j/(ks.length-1),col=rgba(m.c,a.toFixed(2));
+      ds.push({label:m.n+', K='+k,borderColor:col,backgroundColor:col,borderDash:m.d,borderWidth:5,pointRadius:0,pointHoverRadius:7,endLabel:'K='+k,textColor:m.t,data:Vs.map(v=>({x:v,y:m.f(v,k)}))});});
+  });
+  chart.data.datasets=ds;chart.update();
+}
+document.getElementById('vmax').addEventListener('change',build);
+document.fonts.load('24px "Roboto Condensed"');document.fonts.load('700 26px "Roboto Condensed"');document.fonts.ready.then(()=>{chart.update();});
+build();
+fit();
+const h=parseInt(location.hash.slice(1));go(isNaN(h)?0:h-1,false);
+addEventListener('hashchange',()=>{const n=parseInt(location.hash.slice(1));if(!isNaN(n)&&n-1!==cur)go(n-1,false);});
+</script>
+</body>
+</html>
