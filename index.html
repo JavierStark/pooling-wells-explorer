@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pooling wells explorer</title>
+<meta name="description" content="Interactive chart: wells needed by three combinatorial pooling layouts versus the number of guides V, for any guides-per-well K.">
+<style>
+@font-face{font-family:"Roboto Slab";font-weight:400;font-display:swap;src:url(fonts/roboto-slab-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Roboto Slab";font-weight:700;font-display:swap;src:url(fonts/roboto-slab-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Roboto Condensed";font-weight:400;font-display:swap;src:url(fonts/roboto-condensed-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Roboto Condensed";font-weight:700;font-display:swap;src:url(fonts/roboto-condensed-latin-700-normal.woff2) format("woff2")}
+:root{
+  --bg:#FDF4F9; --card:#FFF9FD; --ink:#1C1C1C; --ink2:#5b3a4f; --ink3:#8a6a7d;
+  --line:rgba(110,35,82,.18); --grid:rgba(110,35,82,.12);
+  --plum:#8E3069; --plum-soft:#F7E3EF; --plum-strong:#6E2352;
+  --s1:#8E3069; --s2:#2F8F63; --s3:#C47A12; --s4:#6b6470;
+  --serif:"Roboto Slab",Georgia,"Times New Roman",serif;
+  --sans:"Roboto Condensed",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#220a1d; --card:#32102c; --ink:#FFF9FD; --ink2:#EDC9DC; --ink3:#C597B3;
+  --line:rgba(249,214,228,.22); --grid:rgba(249,214,228,.12);
+  --plum:#E4569F; --plum-soft:#451a3c; --plum-strong:#F9D6E4;
+  --s1:#F6769C; --s2:#8FE3B5; --s3:#F3B562; --s4:#B7AFBD;
+}}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.4}
+main{max-width:980px;margin:0 auto;padding:16px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+h1{font:700 22px/1.15 var(--serif);color:var(--plum-strong)}
+.tag{font:700 12px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--ink3)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.row>.lbl{min-width:84px;font:700 12px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border:1px solid var(--line);border-radius:999px;font-size:14px;cursor:pointer;color:var(--ink2);user-select:none;background:transparent}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip:has(input:checked){background:var(--plum-soft);border-color:var(--plum);color:var(--plum-strong);font-weight:700}
+.chip:has(input:focus-visible){outline:2px solid var(--plum);outline-offset:2px}
+select{font:inherit;font-size:14px;padding:4px 8px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.note{font-size:13px;color:var(--ink3);margin:0 0 6px}
+#err{font-size:14px;color:#B31237;min-height:0;margin-bottom:6px}
+@media (prefers-color-scheme:dark){#err{color:#FF6B8B}}
+.chartwrap{position:relative;width:100%;height:clamp(300px,52vw,460px)}
+footer{margin-top:12px;font-size:13px;color:var(--ink3)}
+footer b{color:var(--ink2)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Wells needed by combinatorial pooling</h1>
+    <span class="tag">V guides, K guides per well</span>
+  </header>
+
+  <section class="panel" aria-label="Chart controls and plot">
+    <div class="row"><span class="lbl">Layouts</span><span class="chips" id="models"></span></div>
+    <div class="row"><span class="lbl">K values</span><span class="chips" id="ks"></span></div>
+    <div class="row"><span class="lbl">Max V</span>
+      <label class="sr" for="vmax">Maximum number of guides V</label>
+      <select id="vmax"><option>100</option><option>250</option><option selected>500</option><option>1000</option><option>2500</option><option>5000</option></select>
+    </div>
+    <p class="note">Line style tells the layout apart; within a layout, a lighter line is a smaller K and a darker line a larger K. Hover or tap the chart to read every line at that V.</p>
+    <p id="err" role="status"></p>
+    <div class="chartwrap">
+      <canvas id="c" role="img" aria-label="Wells needed versus number of guides V, for the selected K values and pooling layouts, with a no-pooling baseline where N equals V.">Wells needed versus V for the selected K values and layouts.</canvas>
+    </div>
+  </section>
+
+  <footer>
+    <p><b>N</b> is the total number of wells (tubes). Counts include the empty slots a layout reserves but never fills, as the Diana tool does.
+    <b>2D Fragmented</b>: N = 2K&middot;ceil(V/K&sup2;). <b>2D Matrix</b>: N = 2s&middot;ceil(s/K), s = ceil(&radic;V). <b>3D</b>: N = 3c&middot;ceil(c&sup2;/K), c = ceil(&#8731;V).
+    <b>No pooling</b>: one guide per well, N = V. These are well counts only; they say nothing about how reliably each layout decodes a screen.</p>
+    <p>iGEM UMA-M&aacute;laga 2026. Formulas as in the pooling module of Diana.</p>
+  </footer>
+</main>
+
+<script src="vendor/chart.umd.js"></script>
+<script>
+const cd=(a,b)=>a<=0?0:Math.floor((a+b-1)/b);
+const csq=v=>{let r=Math.max(1,Math.floor(Math.sqrt(v)));while(r*r<v)r++;while(r>1&&(r-1)*(r-1)>=v)r--;return r;};
+const ccb=v=>{let r=Math.max(1,Math.floor(Math.cbrt(v)));while(r*r*r<v)r++;while(r>1&&(r-1)**3>=v)r--;return r;};
+const MODELS=[
+  {n:'2D Fragmented',cv:'--s1',d:[],on:true,f:(v,k)=>2*k*cd(v,k*k)},
+  {n:'2D Matrix',cv:'--s2',d:[7,4],on:true,f:(v,k)=>{const s=csq(v);return 2*s*cd(s,k);}},
+  {n:'3D',cv:'--s3',d:[2,3],on:true,f:(v,k)=>{const c=ccb(v);return 3*c*cd(c*c,k);}},
+  {n:'No pooling (N = V)',cv:'--s4',d:[9,3,2,3],on:true,f:v=>v,noK:true}
+];
+const KS=[1,2,3,4,5,6,8,10,15,20];
+const kOn=new Set([3,5,8]);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function rgba(hex,a){const h=hex.replace('#','');const n=parseInt(h.length===3?h.replace(/./g,'$&$&'):h,16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}
+
+function chip(label,on,cb,swatch){
+  const l=document.createElement('label');l.className='chip';
+  l.innerHTML=`${swatch||''}<input type="checkbox" ${on?'checked':''}>${label}`;
+  l.querySelector('input').addEventListener('change',e=>cb(e.target.checked));return l;}
+const sw=m=>`<svg width="20" height="8" aria-hidden="true"><line x1="0" y1="4" x2="20" y2="4" stroke="var(${m.cv})" stroke-width="2.5" stroke-dasharray="${m.d.join(' ')}"/></svg>`;
+MODELS.forEach(m=>document.getElementById('models').appendChild(chip(m.n,m.on,v=>{m.on=v;build();},sw(m))));
+KS.forEach(k=>document.getElementById('ks').appendChild(chip('K = '+k,kOn.has(k),v=>{v?kOn.add(k):kOn.delete(k);build();})));
+
+const endLabels={id:'endLabels',afterDatasetsDraw(ch){
+  const ctx=ch.ctx;ctx.save();ctx.font='12px "Roboto Condensed",sans-serif';ctx.fillStyle=css('--ink2');ctx.textBaseline='middle';
+  ch.data.datasets.forEach((ds,i)=>{if(!ds.endLabel)return;const p=ch.getDatasetMeta(i).data.slice(-1)[0];if(p)ctx.fillText(ds.endLabel,p.x+5,p.y);});ctx.restore();}};
+const chart=new Chart(document.getElementById('c'),{type:'line',data:{datasets:[]},plugins:[endLabels],options:{
+  responsive:true,maintainAspectRatio:false,animation:false,parsing:false,layout:{padding:{right:46}},
+  interaction:{mode:'index',intersect:false},
+  plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>'V = '+i[0].parsed.x,label:i=>' '+i.dataset.label+': '+i.parsed.y+' wells'}}},
+  scales:{x:{type:'linear',title:{display:true,text:'V (guides)'},grid:{display:false}},
+          y:{beginAtZero:true,title:{display:true,text:'Wells (N)'}}}}});
+
+function build(){
+  const mute=css('--ink3'),grid=css('--grid');
+  chart.options.scales.x.title.color=mute;chart.options.scales.y.title.color=mute;
+  chart.options.scales.x.ticks.color=mute;chart.options.scales.y.ticks.color=mute;
+  chart.options.scales.y.grid.color=grid;
+  Chart.defaults.font.family='"Roboto Condensed",sans-serif';
+  const vmax=+document.getElementById('vmax').value,step=Math.max(1,Math.round(vmax/400));
+  const Vs=[];for(let v=1;v<=vmax;v+=step)Vs.push(v);if(Vs[Vs.length-1]!==vmax)Vs.push(vmax);
+  const ks=[...kOn].sort((a,b)=>a-b),on=MODELS.filter(m=>m.on);
+  document.getElementById('err').textContent=!on.length?'Select at least one layout.':(!ks.length&&on.some(m=>!m.noK)?'Select at least one K value.':'');
+  const ds=[];
+  on.forEach(m=>{
+    const base=css(m.cv);
+    if(m.noK){ds.push({label:m.n,borderColor:base,borderDash:m.d,borderWidth:2,pointRadius:0,pointHoverRadius:4,endLabel:'No pooling',data:Vs.map(v=>({x:v,y:v}))});return;}
+    ks.forEach((k,j)=>{const a=ks.length===1?1:0.4+0.6*j/(ks.length-1),col=rgba(base,a.toFixed(2));
+      ds.push({label:m.n+', K='+k,borderColor:col,backgroundColor:col,borderDash:m.d,borderWidth:2,pointRadius:0,pointHoverRadius:4,endLabel:'K='+k,data:Vs.map(v=>({x:v,y:m.f(v,k)}))});});
+  });
+  chart.data.datasets=ds;chart.update();
+}
+document.getElementById('vmax').addEventListener('change',build);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{document.querySelectorAll('#models svg line').forEach(()=>{});build();});
+build();
+</script>
+</body>
+</html>
