@@ -468,6 +468,7 @@ addEventListener('keydown',e=>{
   if(['ArrowRight','PageDown'].includes(e.key)||(e.key===' '&&t!=='INPUT'&&t!=='BUTTON')){go(cur+1);e.preventDefault();}
   else if(['ArrowLeft','PageUp'].includes(e.key)){go(cur-1);e.preventDefault();}
   else if(e.key==='Home')go(0);else if(e.key==='End')go(N-1);
+  else if(/^Digit[1-9]$/.test(e.code)&&t!=='INPUT'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){const i=10+Number(e.code.slice(5));if(i<N)go(i);}
   else if(e.key==='f'||e.key==='F')document.getElementById('fs').click();
 });
 let tx=null;
