@@ -97,7 +97,7 @@ b{font-weight:700}
 .figs{position:absolute;left:150px;top:234px;width:882px;display:grid;grid-template-columns:420px 420px;gap:12px 42px}
 .fig{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:left}
 .fig .fcap{align-self:stretch;padding-left:16px}
-.last{position:absolute;left:206px;top:922px;width:700px;margin:0;text-align:center;font-size:34px;line-height:1.25;color:#2B2B2B}
+.last{position:absolute;left:206px;top:922px;width:700px;margin:0;text-align:center;font-size:32px;line-height:1.25;color:#2B2B2B}
 .mflow{position:absolute;left:1085px;top:96px;width:440px;height:900px}
 .ml{position:absolute;left:1560px;width:350px;margin:0;font-size:24px;line-height:1.2;color:#8E3A78}
 .ml b{display:block;font-size:26px;font-weight:400;color:#1B8A8C}
@@ -147,6 +147,14 @@ b{font-weight:700}
 .wf-n{position:absolute;margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-size:24px;line-height:1;color:#6B2D5C;white-space:nowrap}
 .wf-card{position:absolute;left:150px;width:1320px;box-sizing:border-box;background:#FFFFFF;border:2px solid #F2C6DE;border-radius:28px}
 .wf-b{position:absolute;margin:0;width:72px;height:72px;border-radius:50%;background:#DD55A0;color:#fff;font-family:'Roboto Condensed',Arial,sans-serif;font-weight:700;font-size:44px;line-height:72px;text-align:center}
+.un-card{position:absolute;box-sizing:border-box;background:#FFFFFF;border:2px solid #F2C6DE;border-radius:28px}
+.un-t{position:absolute;margin:0;text-align:center;font-family:'Roboto Condensed',Arial,sans-serif;font-weight:700;font-size:50px;line-height:1.1;color:#6B2D5C}
+.un-l{position:absolute;margin:0;padding:0 0 0 28px;font-family:'Roboto Condensed',Arial,sans-serif;font-size:32px;line-height:1.25;color:#2B2B2B}
+.un-l li{margin:0 0 12px 0}
+.un-l li::marker{color:#DD55A0}
+.un-plus{position:absolute;margin:0;text-align:center;font-family:'Roboto Condensed',Arial,sans-serif;font-weight:700;font-size:48px;line-height:60px;color:#DD55A0}
+.un-ban{position:absolute;box-sizing:border-box;height:120px;background:#6B2D5C;border-radius:60px;display:flex;align-items:center;justify-content:center}
+.un-ban p{margin:0;font-family:'Roboto Condensed',Arial,sans-serif;font-weight:700;font-size:50px;color:#FFFFFF}
 
 /* ---- interactive pooling slide ---- */
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
@@ -441,8 +449,36 @@ b{font-weight:700}
 <svg viewBox="66 532 260 68" width="364" height="95" aria-hidden="true" style="position:absolute;left:343px;top:908px"><rect x="70" y="536" width="250" height="60" rx="8" fill="#FFF7FB" stroke="#6B2D5C" stroke-width="1"/><circle cx="100" cy="566" r="11" fill="#82C42F"/><circle cx="140" cy="566" r="11" fill="#F7B3CB"/><circle cx="180" cy="566" r="11" fill="#F7B3CB"/><circle cx="220" cy="566" r="11" fill="#F7B3CB"/><circle cx="260" cy="566" r="11" fill="#F7B3CB"/><circle cx="300" cy="566" r="11" fill="#F7B3CB"/></svg>
 <div style="position:absolute;left:800px;top:956px;transform:translateY(-50%)"><p class="wf-t" style="font-size:50px;line-height:1.1">Into SHERLOCK</p><p class="wf-d" style="font-size:32px;margin-top:6px">Input for the SHERLOCK reaction</p></div>
 </section>
+<section id="unique">
+<div class="d-pink"></div>
+<div class="d-ring"></div>
+<div class="d-ring2"></div>
+<div class="d-gq"></div>
+<h2 class="ttl" style="left:109px;top:76px;font-size:88px">Why is our platform unique?</h2>
+<p class="ptag" style="left:113px;top:176px">Four parts, one working system</p>
+<div class="un-card" style="left:114px;top:290px;width:380px;height:500px"></div>
+<svg viewBox="0 0 120 120" width="150" height="150" aria-hidden="true" style="position:absolute;left:229px;top:324px"><circle cx="60" cy="58" r="34" fill="#6B2D5C"/><circle cx="60" cy="58" r="14" fill="#FFF7FB"/><path d="M14 98 C34 84 50 104 66 92 S96 84 108 98" fill="none" stroke="#F7769C" stroke-width="7" stroke-linecap="round"/><path d="M92 20 L108 36 M108 20 L92 36" stroke="#82C42F" stroke-width="7" stroke-linecap="round"/></svg>
+<p class="un-t" style="left:114px;top:500px;width:380px">CRISPR-Cas13a</p>
+<ul class="un-l" style="left:144px;top:580px;width:326px"><li>Detects the mutation</li><li>Processes the guides</li><li>Cleaves the fluorescent probes</li></ul>
+<p class="un-plus" style="left:494px;top:510px;width:48px">+</p>
+<div class="un-card" style="left:542px;top:290px;width:380px;height:500px"></div>
+<svg viewBox="0 0 120 120" width="150" height="150" aria-hidden="true" style="position:absolute;left:657px;top:324px"><path d="M14 84 L42 40 L74 70 L106 28" fill="none" stroke="#6B2D5C" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="14" cy="84" r="11" fill="#F7769C"/><circle cx="42" cy="40" r="11" fill="#DD55A0"/><circle cx="74" cy="70" r="11" fill="#F7769C"/><circle cx="106" cy="28" r="11" fill="#82C42F"/><path d="M14 108 H106" stroke="#FFD3E4" stroke-width="7" stroke-linecap="round"/></svg>
+<p class="un-t" style="left:542px;top:500px;width:380px">DIANA</p>
+<ul class="un-l" style="left:572px;top:580px;width:326px"><li>Designs the guides</li><li>Generates the pattern to analyze</li></ul>
+<p class="un-plus" style="left:922px;top:510px;width:48px">+</p>
+<div class="un-card" style="left:970px;top:290px;width:380px;height:500px"></div>
+<svg viewBox="0 0 120 120" width="150" height="150" aria-hidden="true" style="position:absolute;left:1085px;top:324px"><path d="M42 22 h36 v30 l-6 40 a12 12 0 0 1 -24 0 l-6 -40 z" fill="#FFF7FB" stroke="#6B2D5C" stroke-width="5"/><circle cx="60" cy="84" r="9" fill="#82C42F"/><path d="M20 38 L32 44 M100 38 L88 44 M16 66 L30 66 M104 66 L90 66" stroke="#82C42F" stroke-width="6" stroke-linecap="round"/></svg>
+<p class="un-t" style="left:970px;top:500px;width:380px">Probes</p>
+<ul class="un-l" style="left:1000px;top:580px;width:326px"><li>Quantify the signal of specific binding</li></ul>
+<p class="un-plus" style="left:1350px;top:510px;width:48px">+</p>
+<div class="un-card" style="left:1398px;top:290px;width:380px;height:500px"></div>
+<svg viewBox="0 0 120 120" width="150" height="150" aria-hidden="true" style="position:absolute;left:1513px;top:324px"><circle cx="26" cy="26" r="13" fill="#DD55A0"/><circle cx="60" cy="26" r="13" fill="#FFD3E4"/><circle cx="94" cy="26" r="13" fill="#DD55A0"/><circle cx="26" cy="60" r="13" fill="#FFD3E4"/><circle cx="60" cy="60" r="13" fill="#DD55A0"/><circle cx="94" cy="60" r="13" fill="#FFD3E4"/><circle cx="26" cy="94" r="13" fill="#FFD3E4"/><circle cx="60" cy="94" r="13" fill="#FFD3E4"/><circle cx="94" cy="94" r="13" fill="#DD55A0"/></svg>
+<p class="un-t" style="left:1398px;top:500px;width:380px">Combinatorics</p>
+<ul class="un-l" style="left:1428px;top:580px;width:326px"><li>Optimizes multiplexing</li><li>Reduces the number of wells</li></ul>
+<div class="un-ban" style="left:114px;top:830px;width:1664px"><p>Each part is necessary for the platform to work properly</p></div>
+</section>
 </div>
-<div id="bar" aria-label="Slide navigation"><button id="prev" aria-label="Previous slide">&#9664;</button><span id="pos">1 / 13</span><button id="next" aria-label="Next slide">&#9654;</button><button id="fs" aria-label="Fullscreen">&#9974;</button></div>
+<div id="bar" aria-label="Slide navigation"><button id="prev" aria-label="Previous slide">&#9664;</button><span id="pos">1 / 14</span><button id="next" aria-label="Next slide">&#9654;</button><button id="fs" aria-label="Fullscreen">&#9974;</button></div>
 <script src="../vendor/chart.umd.js"></script>
 <script>
 
